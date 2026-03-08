@@ -1,8 +1,7 @@
+import pandas as pd
+import plotly.express as px
 import xlwings as xw
 from xlwings import func
-import plotly.express as px
-import pandas as pd
-
 
 
 def main():
@@ -20,7 +19,7 @@ def main():
     df = px.data.iris()
     fig = px.scatter(df, x="sepal_width", y="sepal_length", color="species")
 
-    sheet.pictures.add(fig, name='IrisScatterPlot', update=True)
+    sheet.pictures.add(fig, name="IrisScatterPlot", update=True)
 
 
 @func
