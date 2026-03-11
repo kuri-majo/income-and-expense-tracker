@@ -9,5 +9,9 @@ wheels/
 # Virtual environments
 .venv
 
+# IDE file
+.vscode/launch.json
+
 # the file with the actual expenses; for illustrative purposes we keep a template file
 income_and_expense_tracker/income_and_expense_tracker.xlsm
+income_and_expense_tracker/~$income_and_expense_tracker.xlsm
