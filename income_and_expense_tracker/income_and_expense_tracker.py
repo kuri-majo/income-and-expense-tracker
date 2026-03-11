@@ -12,6 +12,9 @@ def main():
     data = sheet.used_range.value
     df = pd.DataFrame(data[1:], columns=data[0])
 
+    # remove transactions with no value (i.e., placeholders)
+    df = df.dropna(subset="Wert")
+
     # put into long format
     # first, keep all transactions that surely come from a source
     source_transactions = df[[col for col in df.columns if col != "Kategorie"]]
@@ -28,37 +31,40 @@ def main():
 
     # define labels, i.e., levels in the Sankey plot
     label_columns = ["Quelle", "Ziel"]
-    label_links = long_format_transactions[label_columns].drop_duplicates()
-    labels = list(set(itertools.chain.from_iterable([set(long_format_transactions[x]) for x in label_columns])))
+    labels = list(set(itertools.chain.from_iterable([set(agg_df[x]) for x in label_columns])))
 
     # get indices of labels
     agg_df["Quelle_idx"] = agg_df["Quelle"].apply(lambda x: labels.index(x))
     agg_df["Ziel_idx"] = agg_df["Ziel"].apply(lambda x: labels.index(x))
 
     fig = go.Figure(
+        layout={"width": 1600, "height": 900, "font_size": 20},
         data=[
             go.Sankey(
                 node=dict(
-                    # pad = 15,
-                    # thickness = 20,
-                    # line = dict(color = "black", width = 0.5),
+                    align="justify",
+                    pad=50,  # padding (in px) between the nodes when align="justify"
+                    thickness=20,  # the thickness (in px) of the nodes
+                    # groups parameter  # we can define groups of nodes
                     label=labels,
-                    # color = "blue"
                 ),
                 link=dict(
-                    source=agg_df[
-                        "Quelle_idx"
-                    ],  # [0, 1, 0, 2, 3, 3], # indices correspond to labels, eg A1, A2, A1, B1, ...
-                    target=agg_df["Ziel_idx"],  # [2, 3, 3, 4, 4, 5],
-                    value=agg_df["Wert"],  # [8, 4, 2, 8, 4, 2]
+                    source=agg_df["Quelle_idx"],
+                    target=agg_df["Ziel_idx"],
+                    value=agg_df["Wert"],
                 ),
             )
-        ]
+        ],
     )
 
-    fig.update_layout(title_text="Basic Sankey Diagram", font_size=10)
+    sheet.pictures.add(
+        fig,
+        name="Money Flow",
+        update=True,
+        format="svg",
+    )
 
-    sheet.pictures.add(fig, name="Basic Sankey Diagram", update=True)
+    print("Done")
 
 
 if __name__ == "__main__":
