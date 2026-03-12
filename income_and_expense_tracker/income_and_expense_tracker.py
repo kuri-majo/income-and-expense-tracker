@@ -7,9 +7,9 @@ import xlwings as xw
 
 def main():
     wb = xw.Book.caller()
-    sheet = wb.sheets["Sheet1"]
+    transactions_sheet = wb.sheets["Transaktionen"]
 
-    data = sheet.used_range.value
+    data = transactions_sheet.used_range.value
     df = pd.DataFrame(data[1:], columns=data[0])
 
     # remove transactions with no value (i.e., placeholders)
@@ -57,7 +57,9 @@ def main():
         ],
     )
 
-    sheet.pictures.add(
+    # add image to "Plots" sheet
+    plots_sheet = wb.sheets["Plots"]
+    plots_sheet.pictures.add(
         fig,
         name="Money Flow",
         update=True,
