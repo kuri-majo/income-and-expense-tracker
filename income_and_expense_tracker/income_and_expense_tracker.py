@@ -5,16 +5,23 @@ import plotly.graph_objects as go
 import xlwings as xw
 
 
-def main():
-    wb = xw.Book.caller()
+def _get_data(wb):
     transactions_sheet = wb.sheets["Transaktionen"]
 
     data = transactions_sheet.used_range.value
     df = pd.DataFrame(data[1:], columns=data[0])
 
+    return df
+
+
+def _clean_data(df):
     # remove transactions with no value (i.e., placeholders)
     df = df.dropna(subset="Wert")
 
+    return df
+
+
+def _prepare_data(df):
     # put into long format
     # first, keep all transactions that surely come from a source
     source_transactions = df[[col for col in df.columns if col != "Kategorie"]]
@@ -29,6 +36,10 @@ def main():
     # aggregate data
     agg_df = long_format_transactions[["Quelle", "Ziel", "Wert"]].groupby(["Quelle", "Ziel"]).agg(sum).reset_index()
 
+    return agg_df
+
+
+def _create_sankey_plot(agg_df):
     # define labels, i.e., levels in the Sankey plot
     label_columns = ["Quelle", "Ziel"]
     labels = list(set(itertools.chain.from_iterable([set(agg_df[x]) for x in label_columns])))
@@ -56,6 +67,18 @@ def main():
             )
         ],
     )
+
+    return fig
+
+
+def main():
+    wb = xw.Book.caller()
+
+    df = _get_data(wb)
+    df = _clean_data(df)
+    agg_df = _prepare_data(df)
+
+    fig = _create_sankey_plot(agg_df)
 
     # add image to "Plots" sheet
     plots_sheet = wb.sheets["Plots"]
